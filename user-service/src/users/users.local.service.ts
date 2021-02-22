@@ -1,34 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { v4 as uuid } from 'uuid';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
 import { UserService } from './interfaces/UserService';
+import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UsersLocalService implements UserService {
-  private users: User[] = [];
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    await new Promise((res) => {
-      setTimeout(res, 500);
-    });
-    const user = new User(
-      uuid(),
-      createUserDto.username,
-      createUserDto.password,
-    );
-
-    this.users.push(user);
-    return user;
+    try {
+      const user = new this.userModel(createUserDto);
+      return await user.save();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   async findAll(): Promise<User[]> {
-    return this.users;
+    return this.userModel.find();
   }
 
   async findOne(id: string): Promise<User> {
-    const user = this.users.find((u) => u.id === id);
+    const user = this.userModel.findById(id);
 
     if (!user) {
       throw new NotFoundException(`User with if ${id} doesn't exist`);
@@ -38,16 +38,20 @@ export class UsersLocalService implements UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
-
-    user.username = updateUserDto.username;
-    user.password = updateUserDto.password;
-
-    return user;
+    try {
+      const user = await this.userModel.findById(id);
+      user.username = updateUserDto.username;
+      user.email = updateUserDto.email;
+      return await user.save();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   async remove(id: string): Promise<string> {
-    this.users = this.users.filter((u) => u.id !== id);
+    const user = this.userModel.findById(id);
+    await user.remove();
+
     return `This action removes a #${id} user`;
   }
 }

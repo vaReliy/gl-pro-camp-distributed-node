@@ -1,6 +1,6 @@
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import { User } from '../entities/user.entity';
+import { User } from '../schemas/user.schema';
 
 export const USER_SERVICE = 'UserService';
 

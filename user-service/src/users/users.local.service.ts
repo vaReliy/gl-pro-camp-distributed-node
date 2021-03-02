@@ -40,8 +40,8 @@ export class UsersLocalService implements UserService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     try {
       const user = await this.userModel.findById(id);
-      user.username = updateUserDto.username;
-      user.email = updateUserDto.email;
+      user.username = updateUserDto.username ?? user.username;
+      user.email = updateUserDto.email ?? user.email;
       return await user.save();
     } catch (error) {
       throw new BadRequestException(error.message);

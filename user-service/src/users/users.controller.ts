@@ -1,5 +1,7 @@
 import {
   Body,
+  CACHE_MANAGER,
+  CacheTTL,
   Controller,
   Delete,
   Get,
@@ -8,6 +10,8 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { Cache } from 'cache-manager';
+import { RedisService } from 'nestjs-redis';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { USER_SERVICE, UserService } from './interfaces/UserService';
@@ -17,7 +21,12 @@ import { User } from './schemas/user.schema';
 export class UsersController {
   constructor(
     @Inject(USER_SERVICE) private readonly usersService: UserService,
-  ) {}
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache, // for manual reset cache
+    private readonly redisService: RedisService,
+  ) {
+    redisService.getClient().set('hello', 'world').then();
+    // cacheManager.reset();
+  }
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto): Promise<User> {
@@ -25,7 +34,10 @@ export class UsersController {
   }
 
   @Get()
+  @CacheTTL(10)
   async findAll() {
+    console.log('gett data w/o cache');
+    await new Promise((r) => setTimeout(r, 5000)); // fixme: for redis cache test
     return this.usersService.findAll();
   }
 

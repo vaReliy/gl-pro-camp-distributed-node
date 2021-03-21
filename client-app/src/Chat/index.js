@@ -96,28 +96,23 @@ const Chat = () => {
 		setIo(chat);
 
 		chat.on('connect', () => {
-			console.log('on connect'); // fixme
 			setStatus('online');
 		});
 
 		chat.on('userConnected', user => {
-			console.log('on userConnected', user); // fixme
 			setActiveUsers(u => u.concat(user));
 		});
 
 		chat.on('userDisconnected', user => {
-			console.log('on userDisconnected', user); // fixme
 			setActiveUsers(u => u.filter(name => name !== user));
 		});
 
 		chat.on('activeUsers', users => {
-			console.log('on activeUsers', users); // fixme
 			console.info('activeUsers', users);
 			setActiveUsers(() => Array.from(users));
 		});
 
 		chat.on('message', m => {
-			console.log('on message', m); // fixme
 			if (m.currUserId) {
 				setUserId(m.currUserId);
 			}

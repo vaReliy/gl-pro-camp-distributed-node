@@ -1,5 +1,5 @@
 # Stage 0, "build-stage", based on Node.js, to build and compile the frontend
-FROM mhart/alpine-node:14 as build-stage
+FROM node:18-alpine as build-stage
 
 # Create app directory
 WORKDIR /usr/src/app

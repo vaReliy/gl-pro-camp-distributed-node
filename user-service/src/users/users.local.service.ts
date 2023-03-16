@@ -19,6 +19,7 @@ export class UsersLocalService implements UserService {
       const user = new this.userModel(createUserDto);
       return await user.save();
     } catch (error) {
+      // todo: check error type and do throw nesessarry exeption
       throw new BadRequestException(error.message);
     }
   }
@@ -44,6 +45,7 @@ export class UsersLocalService implements UserService {
       user.email = updateUserDto.email ?? user.email;
       return await user.save();
     } catch (error) {
+      // todo: check error type and do throw nesessarry exeption
       throw new BadRequestException(error.message);
     }
   }

@@ -24,7 +24,7 @@ export class UsersController {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache, // for manual reset cache
     private readonly redisService: RedisService,
   ) {
-    redisService.getClient().set('hello', 'world').then();
+    // redisService.getClient().set('hello', 'world').then();
     // cacheManager.reset();
   }
 
@@ -36,8 +36,8 @@ export class UsersController {
   @Get()
   @CacheTTL(10)
   async findAll() {
-    console.log('gett data w/o cache');
-    await new Promise((r) => setTimeout(r, 5000)); // fixme: for redis cache test
+    // console.log('gett data w/o cache');
+    // await new Promise((r) => setTimeout(r, 5000)); // fixme: for redis cache test
     return this.usersService.findAll();
   }
 

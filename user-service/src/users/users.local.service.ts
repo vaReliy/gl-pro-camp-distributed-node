@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Error } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './interfaces/UserService';
@@ -16,8 +16,8 @@ export class UsersLocalService implements UserService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const user = new this.userModel(createUserDto);
-      return await user.save();
+      const user = await this.userModel.create(createUserDto);
+      return user;
     } catch (error) {
       // todo: check error type and do throw nesessarry exeption
       throw new BadRequestException(error.message);
@@ -29,13 +29,21 @@ export class UsersLocalService implements UserService {
   }
 
   async findOne(id: string): Promise<User> {
-    const user = this.userModel.findById(id);
+    try {
+      const user = await this.userModel.findById(id).exec();
 
-    if (!user) {
-      throw new NotFoundException(`User with if ${id} doesn't exist`);
+      if (!user) {
+        throw new NotFoundException(`User with id [${id}] doesn't exist`);
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof Error.CastError) {
+        throw new NotFoundException(`User with id [${id}] doesn't exist`);
+      }
+      // todo: check error type and do throw nesessarry exeption
+      throw new BadRequestException(error.message);
     }
-
-    return user;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {

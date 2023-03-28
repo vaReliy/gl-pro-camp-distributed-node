@@ -4,6 +4,11 @@ import { User } from '../schemas/user.schema';
 
 export const USER_SERVICE = 'UserService';
 
+export enum UserPermission {
+  WRITE_TEXT = 'WRITE_TEXT',
+  EDIT_USERS = 'EDIT_USERS',
+}
+
 export interface UserService {
   create(createUserDto: CreateUserDto): Promise<User>;
   findAll(): Promise<User[]>;

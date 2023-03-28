@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { UserPermission } from '../interfaces/UserService';
 
 export class CreateUserDto {
   /**
@@ -15,4 +16,9 @@ export class CreateUserDto {
    */
   @IsEmail()
   email: string;
+
+  /**
+   * Array of the user permissions
+   */
+  permissions?: UserPermission[];
 }

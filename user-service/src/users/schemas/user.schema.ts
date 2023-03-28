@@ -1,11 +1,6 @@
-import { Document } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ApiProperty } from '@nestjs/swagger';
-
-enum Permissions {
-  WRITE_TEXT,
-  EDIT_USERS,
-}
+import { Document } from 'mongoose';
+import { UserPermission } from '../interfaces/UserService';
 
 @Schema({
   timestamps: true,
@@ -27,17 +22,12 @@ export class User {
   @Prop({ unique: true, index: true })
   email: string;
 
-  @ApiProperty({
-    enum: Permissions,
-    default: [Permissions.WRITE_TEXT],
-    type: String,
-  })
   @Prop({
-    enum: Permissions,
-    default: [Permissions.WRITE_TEXT],
+    enum: UserPermission,
+    default: [UserPermission.WRITE_TEXT],
     type: [String],
   })
-  claims: string[];
+  permissions: UserPermission[];
 }
 
 export type UserDocument = User & Document;

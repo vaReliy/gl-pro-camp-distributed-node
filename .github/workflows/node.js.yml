@@ -38,7 +38,7 @@ jobs:
     - name: Run lint [user-service]
       run: npm run lint
       working-directory: ./user-service
-	
+
     # Run tests [user-service]
     - name: Run tests
       run: npm run test

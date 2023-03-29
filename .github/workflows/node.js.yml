@@ -10,15 +10,11 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-
+  build-user-service:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
@@ -26,20 +22,20 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependeny-path: ./user-service/package-lock.json
         
-    - name: Install deps [user-service]
+    - name: Install deps
       run: npm ci
       working-directory: ./user-service
       
-    - name: Build [user-service]
+    - name: Make a build
       run: npm run build --if-present
       working-directory: ./user-service
 
-    - name: Run lint [user-service]
+    - name: Run lint
       run: npm run lint
       working-directory: ./user-service
 
-    # Run tests [user-service]
     - name: Run tests
       run: npm run test
       working-directory: ./user-service

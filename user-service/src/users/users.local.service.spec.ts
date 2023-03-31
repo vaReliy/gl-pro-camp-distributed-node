@@ -16,10 +16,12 @@ describe('UsersLocalService', () => {
     {
       username: 'Jhon',
       email: 'jhon@mock.com',
+      permissions: ['WRITE_TEXT'],
     },
     {
       username: 'Stiven',
       email: 'stiv@mock.com',
+      permissions: ['WRITE_TEXT'],
     },
   ];
 
@@ -115,6 +117,34 @@ describe('UsersLocalService', () => {
       );
 
       await expect(user).rejects.toEqual(expectedException);
+    });
+  });
+
+  describe('#update', () => {
+    it('should update if user exist', async () => {
+      const mockUserId = 'existedUserIdMock';
+      const userDto: any = {
+        id: mockUserId,
+        username: 'User 123',
+        email: 'u123@mock.com',
+        permissions: ['WRITE_TEXT'],
+      };
+      const mockUser: any = {
+        ...mockUsers[0],
+        id: mockUserId,
+      };
+      Object.setPrototypeOf(mockUser, {
+        save: function () {
+          return this;
+        },
+      });
+
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValueOnce(mockUser),
+      } as any);
+
+      const user: any = await service.update(userDto.id, userDto);
+      expect(user).toEqual(userDto);
     });
   });
 });

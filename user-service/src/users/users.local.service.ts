@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Error } from 'mongoose';
+import { Error, Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './interfaces/UserService';
@@ -48,9 +48,16 @@ export class UsersLocalService implements UserService {
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     try {
-      const user = await this.userModel.findById(id);
+      const user = await await this.userModel.findById(id).exec();
+
+      if (!user) {
+        throw new NotFoundException(`User with id [${id}] doesn't exist`);
+      }
+
       user.username = updateUserDto.username ?? user.username;
       user.email = updateUserDto.email ?? user.email;
+      user.permissions = updateUserDto.permissions ?? user.permissions;
+
       return await user.save();
     } catch (error) {
       // todo: check error type and do throw nesessarry exeption

@@ -146,5 +146,104 @@ describe('UsersLocalService', () => {
       const user: any = await service.update(userDto.id, userDto);
       expect(user).toEqual(userDto);
     });
+
+    it('should throw NotFoundException exception if user does not exist', async () => {
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValueOnce(null),
+      } as any);
+
+      const userDto: any = {
+        id: 'a9988cc77',
+        username: 'User 777',
+      };
+      const expectedException = new NotFoundException(
+        `User with id [${userDto.id}] doesn't exist`,
+      );
+      const result = service.update(userDto.id, userDto);
+
+      await expect(result).rejects.toEqual(expectedException);
+    });
+
+    it('should throw BadRequestException exception if user.save() has an error', async () => {
+      const mockUserId = 'existedUserIdMock';
+      const userDto: any = {
+        id: mockUserId,
+        username: 'User 888',
+      };
+      const mockUser: any = {
+        ...mockUsers[0],
+        id: mockUserId,
+      };
+      const mockExeption = new Error('some save error');
+
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValueOnce(mockUser),
+      } as any);
+      Object.setPrototypeOf(mockUser, {
+        save: () => Promise.reject(mockExeption),
+      });
+
+      await expect(service.update(userDto.id, userDto)).rejects.toEqual(
+        mockExeption,
+      );
+    });
+  });
+
+  describe('#remove', () => {
+    it('should remove if user exist', async () => {
+      const mockUserList: any[] = [
+        { id: '111', username: 'u111' },
+        { id: '222', username: 'u222' },
+      ].map((user) => {
+        const mockedUser = { ...user };
+        Object.setPrototypeOf(mockedUser, {
+          remove: () => jest.fn(),
+        });
+        return mockedUser;
+      });
+
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValueOnce(mockUserList[1]),
+      } as any);
+
+      const result: any = await service.remove('222');
+      const expectedResult = 'This action removes a #222 user';
+
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should throw NotFoundException exception if user does not exist', async () => {
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValueOnce(null),
+      } as any);
+
+      const userDto: any = {
+        id: 'u3333',
+      };
+      const expectedException = new NotFoundException(
+        `User with id [${userDto.id}] doesn't exist`,
+      );
+      const result = service.remove(userDto.id);
+
+      await expect(result).rejects.toEqual(expectedException);
+    });
+
+    it('should throw BadRequestException exception if user.remove() has an error', async () => {
+      const mockUserId = 'u444';
+      const mockUser: any = {
+        ...mockUsers[0],
+        id: mockUserId,
+      };
+      const mockExeption = new Error('some remove error');
+
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValueOnce(mockUser),
+      } as any);
+      Object.setPrototypeOf(mockUser, {
+        remove: () => Promise.reject(mockExeption),
+      });
+
+      await expect(service.remove(mockUserId)).rejects.toEqual(mockExeption);
+    });
   });
 });

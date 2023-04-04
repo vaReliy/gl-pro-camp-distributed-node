@@ -7,6 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { UsersLocalService } from './users.local.service';
+import { Error } from 'mongoose';
 
 describe('UsersLocalService', () => {
   let service: UsersLocalService;
@@ -118,6 +119,38 @@ describe('UsersLocalService', () => {
 
       await expect(user).rejects.toEqual(expectedException);
     });
+
+    it('should throw NotFoundException exception if user ID is not correct', async () => {
+      const mockId = 'a9988cc77';
+      const expectedException = new NotFoundException(
+        `User with id [${mockId}] doesn't exist`,
+      );
+
+      jest.spyOn(userModel, 'findById').mockReturnValueOnce({
+        exec: jest
+          .fn()
+          .mockRejectedValueOnce(new Error.CastError('', { id: mockId }, 'id')),
+      } as any);
+
+      const user = service.findOne(mockId);
+
+      await expect(user).rejects.toEqual(expectedException);
+    });
+
+    it('should throw BadRequestException exception if other error occurred', async () => {
+      const mockId = 'a9988cc77';
+      const expectedErrorMessage = `Some other seror`;
+
+      jest.spyOn(userModel, 'findById').mockReturnValueOnce({
+        exec: jest.fn().mockRejectedValueOnce(new Error(expectedErrorMessage)),
+      } as any);
+
+      const user = service.findOne(mockId);
+
+      await expect(user).rejects.toEqual(
+        new BadRequestException(expectedErrorMessage),
+      );
+    });
   });
 
   describe('#update', () => {
@@ -147,6 +180,29 @@ describe('UsersLocalService', () => {
       expect(user).toEqual(userDto);
     });
 
+    it('should update if user exist (withoud update data)', async () => {
+      const mockUserId = 'existedUserIdMock';
+      const userDto: any = {
+        id: mockUserId,
+      };
+      const mockUser: any = {
+        ...mockUsers[0],
+        id: mockUserId,
+      };
+      Object.setPrototypeOf(mockUser, {
+        save: function () {
+          return this;
+        },
+      });
+
+      jest.spyOn(userModel, 'findById').mockReturnValue({
+        exec: jest.fn().mockReturnValueOnce(mockUser),
+      } as any);
+
+      const user: any = await service.update(userDto.id, userDto);
+      expect(user).toEqual(mockUser);
+    });
+
     it('should throw NotFoundException exception if user does not exist', async () => {
       jest.spyOn(userModel, 'findById').mockReturnValue({
         exec: jest.fn().mockReturnValueOnce(null),
@@ -154,7 +210,6 @@ describe('UsersLocalService', () => {
 
       const userDto: any = {
         id: 'a9988cc77',
-        username: 'User 777',
       };
       const expectedException = new NotFoundException(
         `User with id [${userDto.id}] doesn't exist`,

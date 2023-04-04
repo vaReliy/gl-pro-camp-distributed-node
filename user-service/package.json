@@ -77,6 +77,11 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
+    "coveragePathIgnorePatterns" : [
+      "main.ts",
+      ".*\\.module\\.ts$",
+      ".*\\.schema\\.ts$"
+    ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }

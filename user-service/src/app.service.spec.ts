@@ -12,12 +12,25 @@ describe('AppService', () => {
     service = module.get<AppService>(AppService);
   });
 
-  it('should build homepage string', () => {
+  it('should build homepage string for IP v4', () => {
     const mockIp = '1.1.1.1';
     const expectedresult = `<html>
   <h1>GL Pro Camp<h1/>
   <h2>Distributed node<h2/>
   <h3>Your IP address is: 1.1.1.1<h3/>
+  <a href="/api">API<a/><br><br>
+  <a href="/users">Users<a/>
+  <html/>`;
+
+    expect(service.getHomePage(mockIp)).toBe(expectedresult);
+  });
+
+  it('should build homepage string for IP v6', () => {
+    const mockIp = '::ffff:192.168.55.123';
+    const expectedresult = `<html>
+  <h1>GL Pro Camp<h1/>
+  <h2>Distributed node<h2/>
+  <h3>Your IP address is: 192.168.55.123<h3/>
   <a href="/api">API<a/><br><br>
   <a href="/users">Users<a/>
   <html/>`;

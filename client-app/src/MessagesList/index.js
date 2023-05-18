@@ -9,9 +9,15 @@ const getColor = (enabled, specialColor, defaultColor) => {
 	return defaultColor;
 };
 
-const Welcome = styled.h3`
+const Welcome = styled.div`
 	position: relative;
-	font-size: 15px;
+	font-size: 12px;
+	color: gray;
+`;
+
+const WelcomePart  =styled.span`
+	color: ${props => props.isDecorated ? 'lightgray' : 'gray'};
+	font-weight: ${props => props.isDecorated ? 'bold' : 'normal'};
 `;
 
 const ChatMessagesList = styled.ul`
@@ -23,21 +29,27 @@ const ChatMessagesList = styled.ul`
 `;
 
 const ChatMessage = styled.li`
-	margin-bottom: 5px;
+	margin-left: ${props => props.currentUser ? '5rem' : '0'};
+	width: calc(100% - ${props => props.currentUser ? '0' : '5rem'});
 `;
 
 const Message = styled.div`
 	position: relative;
-	margin: 10px 25px;
 	padding: 10px 20px;
-	width: calc(100% - 60px);
 	border-radius: 4px;
 	color: #afeaa1;
+	overflow-wrap: break-word;
 	background: ${props => getColor(props.currentUser, '#3c4556', '#2f313d')};
 `;
 
+const FlexRowEnd = styled.div`
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+`;
+
 const Time = styled.span`
-	margin-right: 10px;
+	margin-right: 5px;
 	font-weight: 600;
 	font-size: 12px;
 	color: #dcd1c4;
@@ -59,24 +71,41 @@ const Name = styled.span`
 		width: 10px;
 		height: 10px;
 		border-radius: 10px;
-		background: ${props => getColor(props.isOnline, '#6fb472', 'grey')};
+		background: ${props => !props.currentUser ? getColor(props.isOnline, '#6fb472', 'grey') : 'none'};
 	}
 `;
 
 
 function MessagesList(props) {
+	const splittedMessageItems = ({msg, currUserId}) => {
+		const regex = new RegExp(`(\\b${currUserId}\\b)`, 'i');
+		return msg.split(regex);
+	};
+
 	return (
 		<ChatMessagesList ref={props.el}>
 			{ props.messages.map((m, i) => {
 				if (!m.user) {
-					return (<Welcome key={i}> {m.msg}</Welcome>);
+					return (<Welcome key={i}>{
+						splittedMessageItems(m).map((item, i) => {
+							return (<WelcomePart
+										isDecorated={m.currUserId === item}
+										key={i}>
+										{item}
+									</WelcomePart>
+									);
+						})
+					}</Welcome>);
 				}
 				const isOnline = props.activeUsers.includes(m.user);
+				const isSender = props.userId === m.user;
 				return (
-					<ChatMessage key={i + m.user}>
-						<Time>{m.time}</Time>
-						<Name isOnline={isOnline}>{m.user}</Name>
-						<Message currentUser={props.userId === m.user}>{m.msg}</Message>
+					<ChatMessage key={i + m.user} currentUser={isSender}>
+						<Name isOnline={isOnline} currentUser={isSender}>{!isSender ? m.user : ''}</Name>
+						<Message currentUser={isSender}>{m.msg}</Message>
+						<FlexRowEnd>
+							<Time>{m.time}</Time>
+						</FlexRowEnd>
 					</ChatMessage>
 				);
 			})}

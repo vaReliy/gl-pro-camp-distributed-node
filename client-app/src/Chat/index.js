@@ -68,11 +68,20 @@ const Input = styled.input`
 	flex: 1;
 `;
 
-function hostName(meta) {
+const NickName = styled.div`
+	color: lightgray;
+	font-size: 12px;
+`;
+
+const HighlightedSpan = styled.span`
+	color: ${props => props.color};
+`;
+
+function hostName(meta, status) {
 	if (meta && meta.HOSTNAME) {
 		return meta.HOSTNAME;
 	}
-	return 'default';
+	return status || 'default';
 }
 
 const Chat = () => {
@@ -86,12 +95,12 @@ const Chat = () => {
 	const [meta, setMeta] = useState({});
 
 	useEffect(() => {
-		fetch(`${config.host}/meta`)
+		fetch(`${config.apiHost}/meta`)
 			.then(resp => resp.json())
 			.then(resp => setMeta(resp))
 			.catch(console.error);
 
-		const chat = socketIOClient(`${config.host}/chat`);
+		const chat = socketIOClient(`${config.apiHost}/chat`);
 
 		setIo(chat);
 
@@ -128,8 +137,8 @@ const Chat = () => {
 
 	return (
 		<ChatContainer>
-			<Status status={status}>{hostName(meta)}</Status>
-			<H1>NWSD</H1>
+			<Status status={status}>{hostName(meta, status)}</Status>
+			<H1>Chat App</H1>
 			<MessagesList
 				el={el}
 				messages={messages}
@@ -137,6 +146,7 @@ const Chat = () => {
 				activeUsers={activeUsers}
 			/>
 			<Form
+				username={userId}
 				onSubmit={e => {
 					e.preventDefault();
 					if (value !== '') {
@@ -148,8 +158,11 @@ const Chat = () => {
 				<Input
 					value={value}
 					onChange={e => setValue(e.target.value)}
-					placeholder="Enter your message"
+					placeholder={`Enter your message as ${userId}`}
 				/>
+				<NickName>Your username:
+					<HighlightedSpan color="lightblue">{userId}</HighlightedSpan>
+				</NickName>
 			</Form>
 		</ChatContainer>
 	);

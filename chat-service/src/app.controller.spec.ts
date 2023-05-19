@@ -3,20 +3,26 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 describe('AppController', () => {
-  let appController: AppController;
+  class AppServiceMock {
+    getHomePage = jest.fn((ip: string) => `ip is: ${ip}`);
+  }
+
+  let controller: AppController;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
+      providers: [{ provide: AppService, useClass: AppServiceMock }],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    controller = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it('should return homepage as html string', () => {
+    const mockIp = 'mock ip address';
+    const result = controller.getHomePage({ ip: mockIp });
+    const expectedResult = `ip is: ${mockIp}`;
+
+    expect(result).toBe(expectedResult);
   });
 });

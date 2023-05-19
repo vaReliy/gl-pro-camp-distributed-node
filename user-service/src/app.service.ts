@@ -13,7 +13,7 @@ export class AppService {
 function homePageHtmlTemplate(ip: string): string {
   return `<html>
   <h1>GL Pro Camp<h1/>
-  <h2>Distributed node<h2/>
+  <h2>Distributed node | user-service<h2/>
   <h3>Your IP address is: ${ip}<h3/>
   <a href="/api">API<a/><br><br>
   <a href="/users">Users<a/>

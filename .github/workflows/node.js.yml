@@ -39,3 +39,59 @@ jobs:
     - name: Run tests
       run: npm run test
       working-directory: ./user-service
+
+  build-chat-service:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ./chat-service/package-lock.json
+
+    - name: Install deps
+      run: npm ci
+      working-directory: ./chat-service
+      
+    - name: Make a build
+      run: npm run build --if-present
+      working-directory: ./chat-service
+
+    - name: Run lint
+      run: npm run lint
+      working-directory: ./chat-service
+
+    - name: Run tests
+      run: npm run test
+      working-directory: ./chat-service
+
+  build-client-app:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ./client-app/package-lock.json
+
+    - name: Install deps
+      run: npm ci
+      working-directory: ./client-app
+      
+    - name: Make a build
+      run: npm run build --if-present
+      working-directory: ./client-app
+
+    - name: Run tests
+      run: npm run test:no-watch
+      working-directory: ./client-app

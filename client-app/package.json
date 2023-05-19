@@ -19,6 +19,7 @@
     "start": "NODE_OPTIONS=--openssl-legacy-provider react-scripts start",
     "build": "NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
     "test": "NODE_OPTIONS=--openssl-legacy-provider react-scripts test",
+    "test:no-watch": "NODE_OPTIONS=--openssl-legacy-provider react-scripts test --watchAll=false",
     "eject": "NODE_OPTIONS=--openssl-legacy-provider react-scripts eject"
   },
   "eslintConfig": {

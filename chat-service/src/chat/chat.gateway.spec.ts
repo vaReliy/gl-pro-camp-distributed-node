@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ChatGateway } from './chat.gateway';
+import { RedisService } from 'nestjs-redis';
 import * as Utils from '../utils/random-nickname';
+import { REDIS_ACTIVE_USERS_MAP } from './constants';
 
 describe('ChatGateway', () => {
   let gateway: ChatGateway;
-  let activeUsers: Map<string, string>;
+  let redisService: RedisService;
 
   const mockUserId = 'mockUserId';
   const mockUserId2 = 'mockUserId2';
@@ -21,20 +23,32 @@ describe('ChatGateway', () => {
     },
   };
 
+  const redisServiceMock = {
+    getClient: jest.fn().mockReturnValue({
+      del: jest.fn(),
+      hdel: jest.fn().mockReturnValue('hdel'),
+      hget: jest.fn().mockReturnValue(mockUserId),
+      hset: jest.fn(),
+      hvals: jest.fn().mockReturnValue([mockUserId]),
+    }),
+  };
+
   jest
     .spyOn(global.Date.prototype, 'toLocaleString')
     .mockImplementation(() => 'Mocked Date');
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ChatGateway],
+      providers: [
+        ChatGateway,
+        { provide: RedisService, useValue: redisServiceMock },
+      ],
     }).compile();
 
     gateway = module.get<ChatGateway>(ChatGateway);
     gateway.server = serverMock;
 
-    activeUsers = (gateway as any).activeUsers;
-    activeUsers.set(clientSocketMock.id, mockUserId);
+    redisService = module.get<RedisService>(RedisService);
 
     jest.spyOn(Utils, 'default').mockReturnValue(mockUserId2);
   });
@@ -43,8 +57,12 @@ describe('ChatGateway', () => {
     jest.clearAllMocks();
   });
 
+  it('should clear active users map in redis', () => {
+    expect(redisService.getClient().del).toBeCalled();
+  });
+
   describe('#handleMessage', () => {
-    it('should emit a message to the server', () => {
+    it('should emit a message to the server', async () => {
       const payload = 'mock message';
       const expectedResult = {
         msg: payload,
@@ -52,7 +70,11 @@ describe('ChatGateway', () => {
         time: new Date().toLocaleString(),
       };
 
-      gateway.handleMessage(clientSocketMock, payload);
+      await gateway.handleMessage(clientSocketMock, payload);
+      expect(redisService.getClient().hget).toHaveBeenCalledWith(
+        REDIS_ACTIVE_USERS_MAP,
+        clientSocketMock.id,
+      );
       expect(gateway.server.emit).toHaveBeenCalledWith(
         'message',
         expectedResult,
@@ -61,7 +83,7 @@ describe('ChatGateway', () => {
   });
 
   describe('#handleConnection', () => {
-    it('should emit messages to the client socket on connect', () => {
+    it('should emit messages to the client socket on connect', async () => {
       const expectedMessage = {
         msg: `Hello, ${mockUserId2}!`,
         currUserId: mockUserId2,
@@ -71,9 +93,9 @@ describe('ChatGateway', () => {
         msg: `User ${mockUserId2} join to chat.`,
       };
 
-      expect(activeUsers.size).toEqual(1);
+      const clientSocketMock2 = { ...clientSocketMock, id: 10002 };
 
-      gateway.handleConnection({ ...clientSocketMock, id: 10002 });
+      await gateway.handleConnection(clientSocketMock2);
 
       expect(clientSocketMock.emit).toBeCalledTimes(2);
       expect(clientSocketMock.emit).toHaveBeenCalledWith(
@@ -94,18 +116,21 @@ describe('ChatGateway', () => {
         mockUserId2,
       );
 
-      expect(activeUsers.size).toEqual(2);
+      expect(redisService.getClient().hset).toHaveBeenCalledWith(
+        REDIS_ACTIVE_USERS_MAP,
+        clientSocketMock2.id,
+        mockUserId2,
+      );
     });
   });
 
   describe('#handleDisconnect', () => {
-    it('should emit messages to the client socket on disconnect', () => {
+    it('should emit messages to the client socket on disconnect', async () => {
       const expectedMessageResult = {
         msg: `User ${mockUserId} left from chat.`,
       };
-      expect(activeUsers.size).toEqual(1);
 
-      gateway.handleDisconnect(clientSocketMock);
+      await gateway.handleDisconnect(clientSocketMock);
 
       expect(clientSocketMock.broadcast.emit).toBeCalledTimes(2);
       expect(clientSocketMock.broadcast.emit).toBeCalledWith(
@@ -117,7 +142,10 @@ describe('ChatGateway', () => {
         mockUserId,
       );
 
-      expect(activeUsers.size).toEqual(0);
+      expect(redisService.getClient().hget).toHaveBeenCalledWith(
+        REDIS_ACTIVE_USERS_MAP,
+        clientSocketMock.id,
+      );
     });
   });
 });

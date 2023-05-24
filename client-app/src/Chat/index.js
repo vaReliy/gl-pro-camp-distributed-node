@@ -31,26 +31,30 @@ const ChatContainer = styled.div`
 `;
 
 const Form = styled.form`
-	position: relative;
-	margin: 20px 30px;
+	margin: 10px 10px 0 10px;
+	display: flex;
+	flex-direction: row;
 
 	&::before {
 		content: "~msg$:";
 		position: absolute;
-		left: 14px;
-		top: 11px;
+		left: 30px;
+		margin-top: 11px;
 		color: #dcd1c4;
 		font-size: 16px;
 	}
+`;
 
-	&::after {
-		content: "↵";
-		position: absolute;
-		right: 20px;
-		top: 0px;
-		color: #dcd1c4;
-		font-size: 30px;
-	}
+const SubmitButton = styled.button`
+	display: flex;
+    align-items: center;
+	margin-left: 10px;
+	color: #dcd1c4;
+    border-color: #3c4556;
+    background-color: #3c4556;
+    border-radius: 5px;
+	font-size: 30px;
+    font-weight: bold;
 `;
 
 const Input = styled.input`
@@ -71,6 +75,7 @@ const Input = styled.input`
 const NickName = styled.div`
 	color: lightgray;
 	font-size: 12px;
+    margin: 0 0 10px 10px;
 `;
 
 const HighlightedSpan = styled.span`
@@ -154,16 +159,17 @@ const Chat = () => {
 						setValue('');
 					}
 				}}
-			>
+				>
 				<Input
 					value={value}
 					onChange={e => setValue(e.target.value)}
 					placeholder={`Enter your message as ${userId}`}
 				/>
-				<NickName>Your username:
-					<HighlightedSpan color="lightblue">{userId}</HighlightedSpan>
-				</NickName>
+				<SubmitButton type="submit">↵</SubmitButton>
 			</Form>
+			<NickName>Your username:
+				<HighlightedSpan color="lightblue">{userId}</HighlightedSpan>
+			</NickName>
 		</ChatContainer>
 	);
 };
